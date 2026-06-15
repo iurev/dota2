@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dota2 mnemonic keyboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header>
+    <input id="num" type="number" min="1" max="99" placeholder="1-99" autofocus>
+  </header>
+
+  <section id="hero">
+    <div id="heroBox" class="hero-img noimg">
+      <img id="heroImg" alt="">
+      <span class="hero-q">?</span>
+    </div>
+    <div id="heroName" class="hero-name">enter a number</div>
+  </section>
+
+  <section id="kb"></section>
+
+  <footer id="status">loading data…</footer>
+</main>
+<svg id="wires" aria-hidden="true">
+  <defs>
+    <filter id="rough" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="turbulence" baseFrequency="0.018" numOctaves="2" result="n" seed="7"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="4"></feDisplacementMap>
+    </filter>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="5.5" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="context-stroke"></path>
+    </marker>
+  </defs>
+</svg>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ---- light (default) = paper sketch ---- */
+:root {
+  --bg: #ffffff;
+  --paper: #fbfbf9;
+  --fg: #1a1a1a;     /* ink */
+  --dim: #9a9a9a;    /* faint pencil */
+  --line: #2b2b2b;   /* drawn line */
+  --col: #ececec;    /* shaded column */
+  --fill: #1a1a1a;   /* exact / used fill */
+  --fillfg: #ffffff;
+  --hl0: #ff5a5f;    /* tens highlight (red)  - matches arrow 0 */
+  --hl1: #1f8cff;    /* ones highlight (blue) - matches arrow 1 */
+}
+
+/* ---- dark = respect system ---- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414;
+    --paper: #181818;
+    --fg: #ededed;
+    --dim: #666;
+    --line: #cfcfcf;
+    --col: #2a2a2a;
+    --fill: #ededed;
+    --fillfg: #141414;
+  }
+}
+
+/* wobbly hand-drawn box corners */
+.sketch {
+  border: 1.6px solid var(--line);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.5 "Comic Sans MS", "Segoe Print", "Bradley Hand",
+        "Comic Neue", "Chalkboard SE", cursive;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+}
+
+main {
+  width: 100%;
+  max-width: 660px;
+  display: flex;
+  flex-direction: column;
+  gap: 2.2rem;
+}
+
+/* ---- input ---- */
+header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+#num {
+  background: var(--paper);
+  border: 1.6px solid var(--line);
+  border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+  color: var(--fg);
+  font: inherit;
+  font-size: 2rem;
+  width: 5rem;
+  padding: .3rem .5rem;
+  text-align: center;
+  transform: rotate(-.6deg);
+}
+#num:focus { outline: none; border-width: 2.4px; }
+#num::-webkit-outer-spin-button,
+#num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#num { -moz-appearance: textfield; }
+
+/* ---- hero ---- */
+#hero { display: flex; flex-direction: column; gap: .9rem; }
+.hero-img {
+  position: relative;
+  width: 256px;
+  height: 144px;                 /* fixed slot — never collapses, layout stays put */
+  max-width: 100%;
+  border: 1.6px solid var(--line);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  transform: rotate(-.5deg);
+  overflow: hidden;
+}
+.hero-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;                /* keep portraits in full color */
+}
+.hero-img.noimg img { display: none; }   /* no portrait -> show the "?" instead */
+.hero-q {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: var(--dim);
+}
+.hero-img.noimg .hero-q { display: flex; }
+.hero-name {
+  font-size: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  align-items: center;
+}
+.hero-name.empty { color: var(--dim); font-size: 1.1rem; }
+.ch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7rem;
+  padding: .2rem .35rem;
+  border: 1.6px solid transparent;
+  color: var(--dim);
+}
+.ch.letter {
+  color: var(--fg);
+  border: 1.4px solid var(--line);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+.ch.space { min-width: .6rem; border: none; }
+.ch.used {
+  background: var(--fill);
+  color: var(--fillfg);
+  border-color: var(--fill);
+}
+.ch:nth-child(2n) { transform: rotate(.8deg); }
+.ch:nth-child(3n) { transform: rotate(-.9deg); }
+
+/* ---- keyboard: aligned grid, one digit per column ---- */
+#kb {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: .4rem;
+}
+.kb-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim);
+  font-size: 1.1rem;
+  margin-bottom: .15rem;
+  border: 1.6px solid transparent;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+.kb-head.lit {                 /* active digit column */
+  color: var(--fillfg);
+  background: var(--fill);
+  border-color: var(--fill);
+  font-weight: bold;
+}
+.key {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.6px solid var(--line);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: var(--paper);
+}
+.key:nth-child(2n) { transform: rotate(-.7deg); }
+.key:nth-child(3n) { transform: rotate(.7deg); border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px; }
+.key.col {
+  background: var(--col);
+}
+.key.exact {
+  background: var(--fill);
+  color: var(--fillfg);
+  border-color: var(--fill);
+  border-width: 2.4px;
+}
+
+footer {
+  color: var(--dim);
+  font-size: .85rem;
+}
+
+/* ---- curved connector arrows (key -> highlighted name letter) ---- */
+#wires {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;       /* overlay ignores the mouse ... */
+  overflow: visible;
+  z-index: 20;
+}
+#wires g.wire .hit {            /* fat invisible hit area -> easy to hover */
+  fill: none;
+  stroke: transparent;
+  stroke-width: 26;
+  stroke-linecap: round;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+#wires g.wire .vis {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  filter: url(#rough);          /* hand-drawn wobble */
+  pointer-events: none;
+  transition: stroke-width .15s ease;
+}
+#wires g.wire:hover .vis {
+  stroke-width: 7;
+  stroke-dasharray: 9 7;
+  animation: wireflow .7s linear infinite;   /* marching dashes = nice movement */
+}
+@keyframes wireflow { to { stroke-dashoffset: -16; } }
+
+/* ---- paired highlight colors (arrow / key / digit / letter share a hue) ---- */
+/* keyboard exact keys: solid, strong */
+.key.exact.hl0 { background: var(--hl0); border-color: var(--hl0); color: #fff;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hl0) 35%, transparent); }
+.key.exact.hl1 { background: var(--hl1); border-color: var(--hl1); color: #fff;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hl1) 35%, transparent); }
+
+/* active digit cells: solid */
+.kb-head.lit.hl0 { background: var(--hl0); border-color: var(--hl0); color: #fff; }
+.kb-head.lit.hl1 { background: var(--hl1); border-color: var(--hl1); color: #fff; }
+
+/* name letters: lighter tinted shade, colored ink + outline */
+.ch.used.hl0 { background: color-mix(in srgb, var(--hl0) 16%, var(--bg));
+  color: var(--hl0); border-color: var(--hl0); font-weight: bold; }
+.ch.used.hl1 { background: color-mix(in srgb, var(--hl1) 16%, var(--bg));
+  color: var(--hl1); border-color: var(--hl1); font-weight: bold; }
