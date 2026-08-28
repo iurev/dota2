@@ -2,9 +2,25 @@ name: Export Anki screenshots
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - data.csv
+      - img/**
+      - index.html
+      - app.js
+      - logic.js
+      - style.css
+      - package.json
+      - scripts/export-anki.mjs
+      - .github/workflows/export-anki.yml
 
 permissions:
   contents: write
+
+concurrency:
+  group: export-anki
+  cancel-in-progress: true
 
 jobs:
   export:
@@ -35,4 +51,5 @@ jobs:
             exit 0
           fi
           git commit -m "Update Anki mnemonic screenshots"
+          git pull --rebase origin main
           git push
