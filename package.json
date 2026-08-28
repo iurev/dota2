@@ -1,0 +1,11 @@
+{
+  "name": "dota2-mnemonics",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export:anki": "node scripts/export-anki.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}
