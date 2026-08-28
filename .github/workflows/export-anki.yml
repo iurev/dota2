@@ -2,18 +2,6 @@ name: Export Anki screenshots
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - data.csv
-      - img/**
-      - index.html
-      - app.js
-      - logic.js
-      - style.css
-      - package.json
-      - scripts/export-anki.mjs
-      - .github/workflows/export-anki.yml
 
 permissions:
   contents: write
