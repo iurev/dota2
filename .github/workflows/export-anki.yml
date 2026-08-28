@@ -1,0 +1,50 @@
+name: Export Anki screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - data.csv
+      - img/**
+      - index.html
+      - app.js
+      - logic.js
+      - style.css
+      - package.json
+      - scripts/export-anki.mjs
+      - .github/workflows/export-anki.yml
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install exporter
+        run: npm install --no-package-lock
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate screenshots
+        run: npm run export:anki
+
+      - name: Commit generated Anki assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add anki
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+            exit 0
+          fi
+          git commit -m "Update Anki mnemonic screenshots"
+          git push
