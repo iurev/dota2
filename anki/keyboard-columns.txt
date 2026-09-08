@@ -1,0 +1,32 @@
+#separator:Tab
+#html:true
+#notetype:Basic (and reversed card)
+#deck:Dota 2::Keyboard Columns
+#tags:dota2 keyboard-columns
+#columns:Front	Back
+1<span style="display:none">q</span>	Q
+1<span style="display:none">a</span>	A
+1<span style="display:none">z</span>	Z
+2<span style="display:none">w</span>	W
+2<span style="display:none">s</span>	S
+2<span style="display:none">x</span>	X
+3<span style="display:none">e</span>	E
+3<span style="display:none">d</span>	D
+3<span style="display:none">c</span>	C
+4<span style="display:none">r</span>	R
+4<span style="display:none">f</span>	F
+4<span style="display:none">v</span>	V
+5<span style="display:none">t</span>	T
+5<span style="display:none">g</span>	G
+5<span style="display:none">b</span>	B
+6<span style="display:none">y</span>	Y
+6<span style="display:none">h</span>	H
+6<span style="display:none">n</span>	N
+7<span style="display:none">u</span>	U
+7<span style="display:none">j</span>	J
+7<span style="display:none">m</span>	M
+8<span style="display:none">i</span>	I
+8<span style="display:none">k</span>	K
+9<span style="display:none">o</span>	O
+9<span style="display:none">l</span>	L
+0<span style="display:none">p</span>	P
