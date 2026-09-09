@@ -9,9 +9,14 @@ Two kinds of note, all one-directional (no reverse cards):
 Short columns still get all three rows, answered with "nothingness", so the
 gaps are drilled too (0 middle, 8 bottom, ...).
 
-Notes are keyed by the front field, so re-running upserts instead of
-duplicating. An older reversible version of the `keynumbers` notetype is
-migrated in place on first run (its notes are deleted and rebuilt).
+Everything rides on Anki's stock "Basic" notetype and only ever adds, edits or
+deletes notes. Notetypes are never created or reshaped, because a notetype
+change marks the collection schema-modified and forces a full AnkiWeb sync.
+For the same reason the deck's cards get no custom styling - style "Basic" by
+hand in Anki if you want it, and this script will leave that alone.
+
+Note lookups are scoped to the deck, so other decks built on "Basic" are never
+touched.
 
 Usage:
     python3 scripts/sync_keynumbers.py            # sync all 56 notes
@@ -26,8 +31,8 @@ import urllib.request
 
 ANKI_URL = os.environ.get("ANKI_URL", "http://localhost:56666")
 DECK = "keynumbers"
-MODEL = "keynumbers"
-TEMPLATE = "front->back"
+MODEL = os.environ.get("ANKI_MODEL", "Basic")
+FRONT, BACK = "Front", "Back"
 
 # digit -> (top, middle, bottom) key of that QWERTY column; "" where the
 # column runs out of letters (8 and 9 end at the home row, 0 at the top).
@@ -44,22 +49,6 @@ COLUMNS = {
     "8": ("I", "K", ""),
     "9": ("O", "L", ""),
     "0": ("P", "", ""),
-}
-
-CSS = """
-.card {
-  font-family: -apple-system, Segoe UI, sans-serif;
-  text-align: center;
-  background: #14161a;
-  color: #e8e8e8;
-}
-.big { font-size: 72px; font-weight: 700; }
-"""
-
-TEMPLATE_BODY = {
-    "Front": '<div class="big">{{front}}</div>',
-    "Back": '<div class="big">{{front}}</div><hr id="answer">'
-            '<div class="big">{{back}}</div>',
 }
 
 
@@ -83,49 +72,15 @@ def pairs():
     return rows
 
 
-def migrate_model():
-    """Turn the old reversible letter/number notetype into a one-way front/back.
-
-    AnkiConnect cannot delete a notetype, so the existing one is reshaped:
-    its notes are dropped (they are regenerated below), the fields renamed and
-    the reverse card template removed.
-    """
+def check_model():
+    """Fail early rather than half-sync onto a notetype we cannot fill."""
+    if MODEL not in anki("modelNames"):
+        sys.exit(f"notetype '{MODEL}' not found - set ANKI_MODEL to your "
+                 f"local name for Anki's Basic notetype")
     fields = anki("modelFieldNames", modelName=MODEL)
-    names = list(anki("modelTemplates", modelName=MODEL))
-    if fields == ["front", "back"] and names == [TEMPLATE]:
-        return
-    old_notes = anki("findNotes", query=f'note:"{MODEL}"')
-    if old_notes:
-        anki("deleteNotes", notes=old_notes)
-        print(f"deleted {len(old_notes)} old reversible note(s)")
-    renames = {"letter": "front", "number": "back"}
-    for old, new in renames.items():
-        if old in fields:
-            anki("modelFieldRename", modelName=MODEL, oldFieldName=old,
-                 newFieldName=new)
-    for name in ("front", "back"):
-        if name not in fields and name not in renames.values():
-            anki("modelFieldAdd", modelName=MODEL, fieldName=name)
-    if names[0] != TEMPLATE:
-        anki("modelTemplateRename", modelName=MODEL, oldTemplateName=names[0],
-             newTemplateName=TEMPLATE)
-    for name in names[1:]:
-        anki("modelTemplateRemove", modelName=MODEL, templateName=name)
-    print(f"migrated notetype '{MODEL}' to one-way cards")
-
-
-def ensure_model():
-    if MODEL in anki("modelNames"):
-        migrate_model()
-    else:
-        anki("createModel", modelName=MODEL,
-             inOrderFields=["front", "back"],
-             css=CSS,
-             cardTemplates=[dict(Name=TEMPLATE, **TEMPLATE_BODY)])
-        print(f"created model '{MODEL}'")
-    anki("updateModelTemplates",
-         model={"name": MODEL, "templates": {TEMPLATE: TEMPLATE_BODY}})
-    anki("updateModelStyling", model={"name": MODEL, "css": CSS})
+    if FRONT not in fields or BACK not in fields:
+        sys.exit(f"notetype '{MODEL}' has fields {fields}, "
+                 f"expected '{FRONT}' and '{BACK}'")
 
 
 def ensure_deck():
@@ -134,18 +89,18 @@ def ensure_deck():
         print(f"created deck '{DECK}'")
 
 
-def find_note(front):
-    ids = anki("findNotes", query=f'note:"{MODEL}" "front:{front}"')
-    return ids[0] if ids else None
-
-
-def prune(wanted):
-    """Delete notes of this model whose front is no longer in the deck spec."""
-    ids = anki("findNotes", query=f'note:"{MODEL}"')
+def deck_notes():
+    """Map front field -> note id for the notes this script owns."""
+    ids = anki("findNotes", query=f'deck:"{DECK}" note:"{MODEL}"')
     if not ids:
-        return
-    stale = [n["noteId"] for n in anki("notesInfo", notes=ids)
-             if n["fields"]["front"]["value"] not in wanted]
+        return {}
+    return {n["fields"][FRONT]["value"]: n["noteId"]
+            for n in anki("notesInfo", notes=ids)}
+
+
+def prune(existing, wanted):
+    """Delete deck notes whose front is no longer in the spec."""
+    stale = [nid for front, nid in existing.items() if front not in wanted]
     if stale:
         anki("deleteNotes", notes=stale)
         print(f"deleted {len(stale)} stale note(s)")
@@ -176,15 +131,16 @@ def main():
               f"nothing sent (--dry-run)")
         return
 
-    ensure_model()
+    check_model()
     ensure_deck()
+    existing = deck_notes()
     if not only:
-        prune({front for front, _ in rows})
+        prune(existing, {front for front, _ in rows})
 
     added = updated = 0
     for front, back in rows:
-        fields = {"front": front, "back": back}
-        note_id = find_note(front)
+        fields = {FRONT: front, BACK: back}
+        note_id = existing.get(front)
         if note_id:
             anki("updateNoteFields", note={"id": note_id, "fields": fields})
             updated += 1
